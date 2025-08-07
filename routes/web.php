@@ -21,5 +21,6 @@ Route::middleware(['auth','verified'])->group(function () {
 
     Route::get('chat/{id?}',[DashboardController::class,'chat'])->name('chat');
     Route::post('/chat/send', [DashboardController::class, 'send'])->name('chat.send');
+    
 
 });

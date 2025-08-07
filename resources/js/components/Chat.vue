@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/composables/useInitials';
 import type { ChatMessage } from '@/types';
+import Echo from 'laravel-echo';
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
@@ -30,6 +31,12 @@ onMounted(() => {
     messages.value = page.props.messages || [];
     scrollToBottom();
 });
+
+Echo.private(`chat.${receiver.value}`)
+    .listen('ChatMessageSent', (e: { message: ChatMessage }) => {
+        messages.value.push(e.message);
+        scrollToBottom();
+    });
 
 // Send message to backend
 const sendMessage = () => {
@@ -67,7 +74,6 @@ const handleFileUpload = (event: Event) => {
 </script>
 
 <template>
-    <div class="flex h-screen flex-col">
         <!-- Chat Area -->
         <div class="flex flex-1 flex-col  dark:bg-neutral-900">
             <!-- Messages -->
@@ -135,5 +141,4 @@ const handleFileUpload = (event: Event) => {
                 </div>
             </div>
         </div>
-    </div>
 </template>

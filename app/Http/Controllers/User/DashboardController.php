@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use App\Models\User;
@@ -59,12 +60,13 @@ public function send(Request $request)
     } elseif ($request->type === 'file') {
         $path = $request->file('file')->store('chat_files', 'public');
         $message = $user->messages()->create([
-            'receiver_id' => $request->receiver, // ✅ FIXED HERE
+            'receiver_id' => $request->receiver,
             'content' => basename($path),
             'type' => 'file',
         ]);
     }
 
+    broadcast(new MessageSent($message))->toOthers();
     return back()->with('messages', $user->messages()->latest()->take(50)->get());
 }
 
