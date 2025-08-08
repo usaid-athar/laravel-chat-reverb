@@ -18,33 +18,15 @@ class MessageSent implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
-    public function __construct(public ChatMessage $message )
-    {
-                $this->message = $message;
-
-    }
+    public function __construct(public ChatMessage $message) {}
 
     /**
      * Get the channels the event should broadcast on.
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn()
+    public function broadcastOn(): PrivateChannel
     {
         return new PrivateChannel('chat.' . $this->message->receiver_id);
-
     }
-
-
-    public function broadcastAs()
-    {
-        return 'MessageSent';
-    }
-        public function broadcastWith()
-    {
-        return [
-            'message' => $this->message->load('sender'), // optional
-        ];
-    }
-
 }

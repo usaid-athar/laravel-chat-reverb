@@ -34,7 +34,7 @@ class DashboardController extends Controller
 
         return Inertia::render('UserChat', [
             'messages' => $messages,
-            'receiver_id' =>  $id,
+            'receiver_id' =>  intval($otherUserId),
             'auth' => [
                 'user' => auth()->user()
             ]
@@ -67,6 +67,7 @@ public function send(Request $request)
     }
 
     broadcast(new MessageSent($message))->toOthers();
+
     return back()->with('messages', $user->messages()->latest()->take(50)->get());
 }
 

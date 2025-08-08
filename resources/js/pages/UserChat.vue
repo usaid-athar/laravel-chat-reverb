@@ -7,7 +7,9 @@ import { type BreadcrumbItem } from '@/types'
 const props = defineProps<{
   messages: Array<any>
   auth: { user: any }
-}>()
+  receiver_id: Number,
+
+  }>()
 
 const breadcrumbs: BreadcrumbItem[] = [
   {

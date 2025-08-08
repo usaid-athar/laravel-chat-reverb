@@ -6,12 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/composables/useInitials';
 import type { ChatMessage } from '@/types';
-import Echo from 'laravel-echo';
-
+import {useEcho} from '@laravel/echo-vue';
 const page = usePage();
-const auth = computed(() => page.props.auth);
-
-const receiver = computed(() => page.props.receiver_id);
+const auth = page.props.auth;
+const receiver = page.props.receiver_id;
 
 const messages = ref<ChatMessage[]>([]);
 const newMessage = ref('');
@@ -30,13 +28,16 @@ const scrollToBottom = () => {
 onMounted(() => {
     messages.value = page.props.messages || [];
     scrollToBottom();
-});
 
-Echo.private(`chat.${receiver.value}`)
-    .listen('ChatMessageSent', (e: { message: ChatMessage }) => {
+
+    window.useEcho.private(`chat.${auth.user.id}`)
+    .listen('MessageSent', (e: { message: ChatMessage }) => {
         messages.value.push(e.message);
         scrollToBottom();
     });
+
+});
+
 
 // Send message to backend
 const sendMessage = () => {
@@ -47,7 +48,7 @@ const sendMessage = () => {
         type: 'text'
     };
 
-    router.post(route('chat.send', { receiver: receiver.value }), payload, {
+    router.post(route('chat.send', { receiver: receiver }), payload, {
         preserveScroll: true,
         onSuccess: () => {
             newMessage.value = '';
@@ -113,7 +114,7 @@ const handleFileUpload = (event: Event) => {
                             </div>
 
                             <span class="mt-1 block text-xs opacity-60 text-end">
-                                {{ new Date(message.timestamp).toLocaleTimeString() }}
+                                {{ new Date(message.created_at).toLocaleTimeString() }}
                             </span>
                         </div>
                     </div>
