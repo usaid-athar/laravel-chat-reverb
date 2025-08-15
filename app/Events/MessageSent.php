@@ -18,7 +18,13 @@ class MessageSent implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
-    public function __construct(public ChatMessage $message) {}
+    public function __construct(public ChatMessage $message) 
+    {
+        \Log::info('MessageSent event created', [
+            'message_id' => $this->message->id,
+            'receiver_id' => $this->message->receiver_id
+        ]);
+    }
 
     /**
      * Get the channels the event should broadcast on.
@@ -27,6 +33,32 @@ class MessageSent implements ShouldBroadcastNow
      */
     public function broadcastOn(): PrivateChannel
     {
-        return new PrivateChannel('chat.' . $this->message->receiver_id);
+        // Broadcast to the receiver's channel so they can receive the message
+        $channel = new PrivateChannel('chat.' . $this->message->receiver_id);
+        
+        \Log::info('Broadcasting on channel', [
+            'channel' => 'chat.' . $this->message->receiver_id
+        ]);
+        
+        return $channel;
+    }
+
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array
+     */
+    public function broadcastWith(): array
+    {
+        // Load the sender relationship and return the complete message data
+        $this->message->load('sender', 'receiver');
+        
+        $data = [
+            'message' => $this->message->toArray()
+        ];
+        
+        \Log::info('Broadcasting message data', $data);
+        
+        return $data;
     }
 }

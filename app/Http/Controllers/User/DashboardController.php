@@ -50,25 +50,41 @@ public function send(Request $request)
     ]);
 
     $user = auth()->user();
+    $message = null;
 
     if ($request->type === 'text') {
-        $message = $user->messages()->create([
+        $message = ChatMessage::create([
+            'user_id' => $user->id,
             'receiver_id' => $request->receiver,
             'content' => $request->content,
             'type' => 'text',
         ]);
     } elseif ($request->type === 'file') {
         $path = $request->file('file')->store('chat_files', 'public');
-        $message = $user->messages()->create([
+        $message = ChatMessage::create([
+            'user_id' => $user->id,
             'receiver_id' => $request->receiver,
             'content' => basename($path),
             'type' => 'file',
         ]);
     }
 
-    broadcast(new MessageSent($message))->toOthers();
+    if ($message) {
+        // Load relationships before broadcasting
+        $message->load('sender', 'receiver');
+        
+        // Debug logging
+        \Log::info('Broadcasting message', [
+            'message_id' => $message->id,
+            'sender_id' => $message->user_id,
+            'receiver_id' => $message->receiver_id,
+            'channel' => 'chat.' . $message->receiver_id
+        ]);
+        
+        // Broadcast the message
+        broadcast(new MessageSent($message));
+    }
 
-    return back()->with('messages', $user->messages()->latest()->take(50)->get());
+    return back();
 }
-
 }
